@@ -1,0 +1,30 @@
+{
+  "name": "cliqueti/datalayer",
+  "description": "Database abstraction component based on PDO with prepared statements.",
+  "keywords": [
+    "Cliqueti",
+    "Clique-Ti",
+    "paulobrand",
+    "Database",
+    "PDO",
+    "CRUD"
+  ],
+  "homepage": "http://www.cliqueti.com.br",
+  "minimum-stability": "stable",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Paulo",
+      "email": "paulo@cliqueti.com.br"
+    }
+  ],
+  "require": {
+    "php": "^7.2",
+    "ext-pdo": "*"
+  },
+  "autoload": {
+    "psr-4": {
+      "CliqueTI\\DataLayer\\": "source"
+    }
+  }
+}
