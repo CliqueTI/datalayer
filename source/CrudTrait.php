@@ -5,6 +5,7 @@ namespace CliqueTI\DataLayer;
 
 use DateTime;
 use Exception;
+use PDO;
 use PDOException;
 
 /**
@@ -14,12 +15,35 @@ use PDOException;
 trait CrudTrait {
 
     /**
+     * @param bool $all
+     * @return array|mixed|null
+     */
+    public function fetch(bool $all = false) {
+        try {
+            $stmt = Connect::getInstance()->prepare($this->statement . $this->group . $this->order . $this->limit . $this->offset);
+            $stmt->execute($this->params);
+
+            if (!$stmt->rowCount()) {
+                return null;
+            }
+
+            if ($all) {
+                return $stmt->fetchAll(PDO::FETCH_CLASS, static::class);
+            }
+
+            return $stmt->fetchObject(static::class);
+        } catch (PDOException $exception) {
+            $this->fail = $exception;
+            return null;
+        }
+    }
+
+    /**
      * @param array $data
      * @return int|null
      * @throws Exception
      */
-    protected function create(array $data): ?int
-    {
+    protected function create(array $data): ?int {
         if ($this->timestamps) {
             $data["created_at"] = (new DateTime("now"))->format("Y-m-d H:i:s");
             $data["updated_at"] = $data["created_at"];
@@ -46,8 +70,7 @@ trait CrudTrait {
      * @return int|null
      * @throws Exception
      */
-    protected function update(array $data, string $terms, string $params): ?int
-    {
+    protected function update(array $data, string $terms, string $params): ?int {
         if ($this->timestamps) {
             $data["updated_at"] = (new DateTime("now"))->format("Y-m-d H:i:s");
         }
@@ -74,8 +97,7 @@ trait CrudTrait {
      * @param string|null $params
      * @return bool
      */
-    public function delete(string $terms, ?string $params): bool
-    {
+    public function delete(string $terms, ?string $params): bool {
         try {
             $stmt = Connect::getInstance()->prepare("DELETE FROM {$this->entity} WHERE {$terms}");
             if ($params) {
@@ -96,8 +118,7 @@ trait CrudTrait {
      * @param array $data
      * @return array|null
      */
-    private function filter(array $data): ?array
-    {
+    private function filter(array $data): ?array {
         $filter = [];
         foreach ($data as $key => $value) {
             $filter[$key] = (is_null($value) ? null : filter_var($value, FILTER_DEFAULT));
