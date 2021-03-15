@@ -83,7 +83,7 @@ abstract class DataLayer {
      * @param string|array $column
      * @return DataLayer|null
      */
-    public function group($column): ?DataLayer {
+    public function groupBy($column): ?DataLayer {
         if (is_array($column)) {
             $column = implode(", ", array_values($column));
         }
@@ -140,9 +140,9 @@ abstract class DataLayer {
      * @param array|null $terms
      * @param string|null $params
      * @param string $columns
-     * @return DataLayer
+     * @return DataLayer|null
      */
-    public function find($terms = null, string $params = null, $columns = "*"): DataLayer {
+    public function find($terms = null, string $params = null, $columns = "*") {
 
         if(is_array($terms)){
 
@@ -166,6 +166,15 @@ abstract class DataLayer {
 
         $this->statement = "SELECT {$columns} FROM {$this->entity} {$this->statement}";
         return $this;
+    }
+
+    /**
+     * @param int $id
+     * @param string $columns
+     * @return null|mixed|DataLayer
+     */
+    public function findById(int $id, string $columns = "*"): ?DataLayer {
+        return $this->find(['where'=>[$this->primary => $id]])->fetch();
     }
 
 
