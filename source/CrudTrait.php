@@ -20,7 +20,7 @@ trait CrudTrait {
      */
     public function fetch(bool $all = false) {
         try {
-            $stmt = Connect::getInstance()->prepare($this->statement . $this->group . $this->order . $this->limit . $this->offset);
+            $stmt = Connect::getInstance()->prepare($this->statement . $this->groupby . $this->order . $this->limit . $this->offset);
             $stmt->execute($this->params);
 
             if (!$stmt->rowCount()) {
