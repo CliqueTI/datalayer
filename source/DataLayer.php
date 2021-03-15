@@ -34,7 +34,7 @@ abstract class DataLayer {
     protected $params;
 
     /** @var string */
-    protected $group;
+    protected $groupby;
 
     /** @var string */
     protected $order;
@@ -87,7 +87,7 @@ abstract class DataLayer {
         if (is_array($column)) {
             $column = implode(", ", array_values($column));
         }
-        $this->group = " GROUP BY {$column}";
+        $this->groupby = " GROUP BY {$column}";
         return $this;
     }
 
