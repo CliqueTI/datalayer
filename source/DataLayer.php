@@ -174,7 +174,7 @@ abstract class DataLayer {
      * @return null|mixed|DataLayer
      */
     public function findById(int $id, string $columns = "*"): ?DataLayer {
-        return $this->find(['where'=>[$this->primary => $id]])->fetch();
+        return $this->find(['where'=>[$this->primary => $id]], null, $columns)->fetch();
     }
 
 
