@@ -140,9 +140,10 @@ abstract class DataLayer {
      * @param array|null $terms
      * @param string|null $params
      * @param string $columns
+     * @param bool $distinct
      * @return DataLayer|null
      */
-    public function find($terms = null, string $params = null, $columns = "*") {
+    public function find($terms = null, string $params = null, string $columns = "*", bool $distinct = false) {
 
         if(is_array($terms)){
 
@@ -164,7 +165,8 @@ abstract class DataLayer {
 
         }
 
-        $this->statement = "SELECT {$columns} FROM {$this->entity} {$this->statement}";
+        $distinct = ($distinct?"DISTINCT ":"");
+        $this->statement = "SELECT {$distinct}{$columns} FROM {$this->entity} {$this->statement}";
         return $this;
     }
 
