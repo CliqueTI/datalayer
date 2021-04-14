@@ -18,7 +18,7 @@ trait FunctionsTrait {
         if($data){
             foreach ($data as $field => $value){
                 $terms = ($terms??"") . "{$field}=:".rtrim($field,'!<>=')." AND ";
-                $params = ($params??"") . rtrim($field,'!<>=') . "={$value}&";
+                $params = ($params??"") . rtrim($field,' !<>=') . "={$value}&";
             }
             $terms = substr($terms, 0, -5);
             $params = substr($params, 0, -1);

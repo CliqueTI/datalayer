@@ -27,6 +27,9 @@ abstract class DataLayer {
     /** @var string $timestamps control created and updated at */
     private $timestamps;
 
+    /** @var array $listFields list fields of table */
+    protected $listFields;
+
     /** @var string */
     protected $statement;
 
@@ -63,6 +66,44 @@ abstract class DataLayer {
         $this->primary = $primary;
         $this->required = $required;
         $this->timestamps = $timestamps;
+        $this->listFields = $this->getColunms();
+    }
+
+    /**
+     * @param $name
+     * @param $value
+     */
+    public function __set($name, $value) {
+        if (empty($this->data)) {
+            $this->data = new stdClass();
+        }
+
+        $this->data->$name = $value;
+    }
+
+    /**
+     * @param $name
+     * @return string|null
+     */
+    public function __get($name) {
+        $method = $this->toCamelCase($name);
+        if (method_exists($this, $method)) {
+            return $this->$method();
+        }
+
+        if (method_exists($this, $name)) {
+            return $this->$name();
+        }
+
+        return ($this->data->$name ?? null);
+    }
+
+    /**
+     * @param $name
+     * @return bool
+     */
+    public function __isset($name) {
+        return isset($this->data->$name);
     }
 
     /**
@@ -135,6 +176,18 @@ abstract class DataLayer {
         return $stmt->rowCount();
     }
 
+    /**
+     * @return array|null
+     */
+    public function getColunms() {
+        $rs = Connect::getInstance()->query("SELECT * FROM {$this->entity} LIMIT 0");
+        for ($i = 0; $i < $rs->columnCount(); $i++) {
+            $col = $rs->getColumnMeta($i);
+            $columns[] = $col['name'];
+        }
+        return ($columns ?? null);
+    }
+
 
     /**
      * @param array|null $terms
@@ -145,11 +198,11 @@ abstract class DataLayer {
      */
     public function find($terms = null, string $params = null, string $columns = "*", bool $distinct = false) {
 
-        if(is_array($terms)){
+        if (is_array($terms)) {
 
-            foreach ($terms as $function => $term){
+            foreach ($terms as $function => $term) {
                 $fnc = $this->toCamelCase($function);
-                if(method_exists($this, $fnc)){
+                if (method_exists($this, $fnc)) {
                     $response = $this->$fnc($term);
                     $this->statement .= $response['terms'];
                     $this->params .= $response['params'];
@@ -158,14 +211,15 @@ abstract class DataLayer {
             parse_str($this->params, $this->params);
             $this->statement = "WHERE {$this->statement}";
 
-        } elseif($terms) {
+        } elseif ($terms) {
 
             $this->statement .= "WHERE {$terms}";
             parse_str($params, $this->params);
 
         }
 
-        $distinct = ($distinct?"DISTINCT ":"");
+        $distinct = ($distinct ? "DISTINCT " : "");
+        $distinct = ($distinct ? "DISTINCT " : "");
         $this->statement = "SELECT {$distinct}{$columns} FROM {$this->entity} {$this->statement}";
         return $this;
     }
@@ -176,9 +230,84 @@ abstract class DataLayer {
      * @return null|mixed|DataLayer
      */
     public function findById(int $id, string $columns = "*"): ?DataLayer {
-        return $this->find(['where'=>[$this->primary => $id]], null, $columns)->fetch();
+        return $this->find(['where' => [$this->primary => $id]], null, $columns)->fetch();
     }
 
+    /**
+     * @param array $listPost
+     * @param bool $checkFieldExist
+     * @return $this
+     */
+    public function setFromForm(array $listPost, bool $checkFieldExist = true): DataLayer {
+        foreach ($listPost as $field => $value) {
+            if (!empty($this->listFields)) {
+                if (in_array($field, $this->listFields)) {
+                    $this->{$field} = $value;
+                }
+            } elseif(!$checkFieldExist) {
+                $this->{$field} = $value;
+            }
+        }
+        return $this;
+    }
+
+    /**
+     * @return bool
+     */
+    public function save(): bool {
+        /* Vars */
+        $primary = $this->primary;
+        $id = null;
+        /* Execute */
+        try {
+            if (!$this->required()) {
+                throw new Exception("Preencha os campos necessários.");
+            }
+            /* Update */
+            if (!empty($this->data->$primary)) {
+                $id = $this->data->$primary;
+                $this->update($this->safe(), "{$this->primary} = :id", "id={$id}");
+            }
+            /* Create */
+            if (empty($this->data->$primary)) {
+                $id = $this->create($this->safe());
+            }
+            /* Exit */
+            if ($id) {
+                $this->data = $this->findById($id)->data();
+                return true;
+            }
+            return false;
+
+        } catch (Exception $exception) {
+            $this->fail = $exception;
+            return false;
+        }
+    }
+
+    /**
+     * @return bool
+     */
+    public function destroy(): bool {
+        $primary = $this->primary;
+        $id = $this->data->$primary;
+
+        if(empty($id)) {
+            return false;
+        }
+
+        return $this->delete("{$this->primary} = :id", "id={$id}");
+    }
+
+
+    /**
+     * @return array|null
+     */
+    protected function safe(): ?array {
+        $safe = (array)$this->data;
+        unset($safe[$this->primary]);
+        return $safe;
+    }
 
     /**
      * @return bool
@@ -186,7 +315,7 @@ abstract class DataLayer {
     protected function required(): bool {
         $data = (array)$this->data();
         foreach ($this->required as $field) {
-            if (empty($data[$field])) {
+            if (empty(trim($data[$field]))) {
                 return false;
             }
         }
