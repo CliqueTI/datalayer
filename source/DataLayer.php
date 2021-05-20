@@ -205,7 +205,7 @@ abstract class DataLayer {
                 if (method_exists($this, $fnc)) {
                     $response = $this->$fnc($term);
                     $this->statement .= $response['terms'];
-                    $this->params = $response['params'];
+                    $this->params = array_merge(($this->params??[]),$response['params']);
                 }
             }
             $this->statement = "WHERE {$this->statement}";
