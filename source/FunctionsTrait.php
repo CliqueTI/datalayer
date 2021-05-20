@@ -18,12 +18,11 @@ trait FunctionsTrait {
         if($data){
             foreach ($data as $field => $value){
                 $terms = ($terms??"") . "{$field}=:".rtrim($field,'!<>=')." AND ";
-                $params = ($params??"") . rtrim($field,' !<>=') . "={$value}&";
+                $params[rtrim($field,' !<>=')] = $value;
             }
             $terms = substr($terms, 0, -5);
-            $params = substr($params, 0, -1);
 
-            return ['terms'=>($this->statement?" AND ":"").$terms,'params'=>($this->params?"&":"").$params];
+            return ['terms'=>($this->statement?" AND ":"").$terms,'params'=>($params??[])];
         }
         return null;
     }
@@ -46,15 +45,13 @@ trait FunctionsTrait {
                 foreach ($arValue as $value){
                     $rndField = "F".mt_rand(100,999);
                     $terms = ($terms??"") . ":{$rndField}, ";
-                    $params = ($params??"") . "{$rndField}={$value}&";
+                    $params[$rndField] = $value;
                 }
                 $terms = substr($terms, 0, -2);
-                $params = substr($params, 0, -1);
             }
 
             $terms = ($this->statement?" AND ":"").key($data)." IN ({$terms})";
-            $params = ($this->params?"&":"").$params;
-            return ['terms'=>$terms,'params'=>$params];
+            return ['terms'=>$terms,'params'=>($params??[])];
         }
         return null;
     }
@@ -76,15 +73,13 @@ trait FunctionsTrait {
                 foreach ($arValue as $value){
                     $rndField = "F".mt_rand(100,999);
                     $terms = ($terms??"") . ":{$rndField}, ";
-                    $params = ($params??"") . "{$rndField}={$value}&";
+                    $params[$rndField] = $value;
                 }
                 $terms = substr($terms, 0, -2);
-                $params = substr($params, 0, -1);
             }
 
             $terms = ($this->statement?" AND ":"").key($data)." NOT IN ({$terms})";
-            $params = ($this->params?"&":"").$params;
-            return ['terms'=>$terms,'params'=>$params];
+            return ['terms'=>$terms,'params'=>($params??[])];
         }
         return null;
     }
@@ -97,12 +92,11 @@ trait FunctionsTrait {
         if($data){
             foreach ($data as $field => $value){
                 $terms = ($terms??"")."{$field} LIKE :{$field} OR ";
-                $params = ($params??"")."{$field}=%{$value}%&";
+                $params[$field] = "%{$value}%";
             }
             $terms = substr($terms, 0, -4);
-            $params = substr($params, 0, -1);
 
-            return ['terms'=>($this->statement?" AND ":"").$terms,'params'=>($this->params?"&":"").$params];
+            return ['terms'=>($this->statement?" AND ":"").$terms,'params'=>($params??[])];
         }
         return null;
     }

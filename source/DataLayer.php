@@ -205,10 +205,9 @@ abstract class DataLayer {
                 if (method_exists($this, $fnc)) {
                     $response = $this->$fnc($term);
                     $this->statement .= $response['terms'];
-                    $this->params .= $response['params'];
+                    $this->params = $response['params'];
                 }
             }
-            parse_str($this->params, $this->params);
             $this->statement = "WHERE {$this->statement}";
 
         } elseif ($terms) {
@@ -315,6 +314,9 @@ abstract class DataLayer {
     protected function required(): bool {
         $data = (array)$this->data();
         foreach ($this->required as $field) {
+            if(!array_key_exists($field, $data)){
+                return false;
+            }
             if (empty(trim($data[$field]))) {
                 return false;
             }
