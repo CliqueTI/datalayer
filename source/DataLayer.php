@@ -219,7 +219,7 @@ abstract class DataLayer {
 
         $distinct = ($distinct ? "DISTINCT " : "");
         $distinct = ($distinct ? "DISTINCT " : "");
-        $this->statement = "SELECT {$distinct}{$columns} FROM {$this->entity} {$this->statement}";
+        $this->statement = "SELECT {$distinct}{$columns} FROM {$this->entity} {$this->statement} ";
         return $this;
     }
 
