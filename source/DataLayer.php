@@ -3,7 +3,6 @@
 namespace CliqueTI\DataLayer;
 
 use Exception;
-use PDO;
 use PDOException;
 use stdClass;
 
@@ -197,6 +196,7 @@ abstract class DataLayer {
      * @return DataLayer|null
      */
     public function find($terms = null, string $params = null, string $columns = "*", bool $distinct = false) {
+        $this->statement = null;
 
         if (is_array($terms)) {
 
@@ -218,8 +218,8 @@ abstract class DataLayer {
         }
 
         $distinct = ($distinct ? "DISTINCT " : "");
-        $distinct = ($distinct ? "DISTINCT " : "");
         $this->statement = "SELECT {$distinct}{$columns} FROM {$this->entity} {$this->statement} ";
+
         return $this;
     }
 
@@ -260,7 +260,7 @@ abstract class DataLayer {
         /* Execute */
         try {
             if (!$this->required()) {
-                throw new Exception("Preencha os campos necessários.");
+                throw new Exception('Preencha os campos necessários');
             }
             /* Update */
             if (!empty($this->data->$primary)) {
